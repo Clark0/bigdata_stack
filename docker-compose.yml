@@ -15,6 +15,7 @@ services:
       - ./config/hadoop-hive.env
     ports:
       - "50070:50070"
+      - "9010:8020"
     networks:
       - base_net
 
@@ -33,7 +34,6 @@ services:
       - base_net
 
   # Hive
-
   hive-server:
     image: johannestang/hive:2.3.6-postgresql-metastore-s3
     restart: always
@@ -73,7 +73,6 @@ services:
       - base_net
 
   # Presto
-
   presto-coordinator:
     image: johannestang/prestodb:326
     restart: always
@@ -88,20 +87,33 @@ services:
     networks:
       - base_net
 
-  # Minio
-
   minio:
-    image: minio/minio:RELEASE.2019-10-12T01-39-57Z
+    image: minio/minio
     restart: always
     ports:
-      - "9000:9000"
+      - 9000:9000
+      - 9001:9001
     environment:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
     volumes:
       - ${DATADIR}/minio/data:/data
       - ${DATADIR}/minio/config:/root/.minio
-    command: server /data
+    command: server --console-address ":9001" /data
+    networks:
+      - base_net
+
+  spark-hudi:
+    image: 'ghcr.io/trinodb/testing/spark3-hudi:latest'
+    hostname: spark-hudi
+    depends_on:
+      - hive-metastore
+      - minio
+    volumes:
+      - ./config/spark-defaults.conf:/spark/conf/spark-defaults.conf:ro
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
     networks:
       - base_net
 
