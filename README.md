@@ -6,35 +6,29 @@ Big data stack running in pseudo-distributed mode with the following components:
  - Minio RELEASE.2019-10-12T01-39-57Z
  - Hive 2.3.6
  - Presto 326
- - Superset 0.35.1
- - Hue 4.5.0
 
 For more details see the following [post](https://johs.me/posts/big-data-stack-running-sql-queries/).
 
 ## Quick start
 
-Clone the repository and create `.env` file based on `sample.env` making sure `DATADIR` points to a 
+Clone the repository and create `.env` file based on `sample.env` making sure `DATADIR` points to a
 suitable directory (persistent storage for all containers). Bring up the base stack:
 ```
 docker-compose up -d
 ```
-If you also want to start Superset and Hue, then run:
+
+To run additional profiles `hudi` or `iceberg`
 ```
-docker-compose -f superset/docker-compose.yml up -d
-docker-compose -f hue/docker-compose.yml up -d
+docker-compose --profile hudi --profile iceberg up
 ```
-and initialize:
-```
-./scripts/init-hue.sh
-./scripts/init-superset.sh
-```
+
 The stack should now be up and running and the following services available:
 
- - Hadoop namenode: [http://localhost:50070](http://localhost:50070)
+ - Hadoop namenode: [http://localhost:9010](http://localhost:9010)
+ - Hadoop web ui [http://localhost:50070](http://localhost:50070)
  - Minio: [http://localhost:9000](http://localhost:9000)
+ - Minio web ui: [http://localhost:9001](http://localhost:9001)
  - Presto: [http://localhost:8080](http://localhost:8080)
- - Superset: [http://localhost:8088](http://localhost:8088)
- - Hue: [http://localhost:8888](http://localhost:8888)
 
 ## Contents
 
@@ -55,9 +49,9 @@ Changes compared to original images:
 
 The scripts directory contains some helper scripts:
 
- - `beeline.sh`: Launch Beeline (Hive CLI) in Hive container 
+ - `beeline.sh`: Launch Beeline (Hive CLI) in Hive container
  - `hadoop-client.sh`: Start container with Hadoop utilities (host filesystem mounted as `/host`). Useful for moving files to HDFS.
- - `init-hue.sh`: Create admin home folder in HDFS in order to avoid error in Hue File Browser.
- - `init-superset.sh`: Initialize Superset database and add Presto as data source
  - `presto-cli.sh`: Launch Presto CLI (downloads jar if needed)
+ - `spark-hudi-shell`: Launch Spark Hudi shell
+ - `spark-iceberg-shell`: Launch Spark Iceberg shell
 
