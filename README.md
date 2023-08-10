@@ -5,7 +5,7 @@ Big data stack running in pseudo-distributed mode with the following components:
  - Hadoop 2.8.5
  - Minio RELEASE.2019-10-12T01-39-57Z
  - Hive 2.3.6
- - Presto 326
+ - Trino 351
 
 For more details see the following [post](https://johs.me/posts/big-data-stack-running-sql-queries/).
 
@@ -17,9 +17,9 @@ suitable directory (persistent storage for all containers). Bring up the base st
 docker-compose up -d
 ```
 
-To run additional profiles `hudi` or `iceberg`
+To run additional profiles `hudi`
 ```
-docker-compose --profile hudi --profile iceberg up
+docker-compose --profile hudi up
 ```
 
 The stack should now be up and running and the following services available:
@@ -28,7 +28,7 @@ The stack should now be up and running and the following services available:
  - Hadoop web ui [http://localhost:50070](http://localhost:50070)
  - Minio: [http://localhost:9000](http://localhost:9000)
  - Minio web ui: [http://localhost:9001](http://localhost:9001)
- - Presto: [http://localhost:8080](http://localhost:8080)
+ - Trino: [http://localhost:8080](http://localhost:8080)
 
 ## Contents
 
@@ -44,14 +44,11 @@ Changes compared to original images:
  - Hadoop updated to version 2.8.5
  - Hive update to version 2.3.6
  - S3 support added
- - Presto update to 326
- - Presto JDBC driver added to Hue
 
 The scripts directory contains some helper scripts:
 
  - `beeline.sh`: Launch Beeline (Hive CLI) in Hive container
  - `hadoop-client.sh`: Start container with Hadoop utilities (host filesystem mounted as `/host`). Useful for moving files to HDFS.
- - `presto-cli.sh`: Launch Presto CLI (downloads jar if needed)
+ - `trino-cli.sh`: Launch Trino CLI (downloads jar if needed)
  - `spark-hudi-shell`: Launch Spark Hudi shell
- - `spark-iceberg-shell`: Launch Spark Iceberg shell
 

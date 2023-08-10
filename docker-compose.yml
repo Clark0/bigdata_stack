@@ -3,7 +3,6 @@ version: "3.9"
 services:
 
   # Hadoop
-
   namenode:
     image: johannestang/hadoop-namenode:2.0.0-hadoop2.8.5-java8
     restart: always
@@ -15,7 +14,7 @@ services:
       - ./config/hadoop-hive.env
     ports:
       - "50070:50070"
-      - "9010:8020"
+      - "8020:8020"
     networks:
       - base_net
 
@@ -73,8 +72,8 @@ services:
       - base_net
 
   # Presto
-  presto-coordinator:
-    image: johannestang/prestodb:326
+  trino-coordinator:
+    image: trinodb/trino:351
     restart: always
     ports:
       - "8080:8080"
@@ -83,7 +82,7 @@ services:
       S3_SECRET_KEY: ${MINIO_SECRET_KEY}
       S3_ENDPOINT: "http://minio:9000"
     volumes:
-      - ./config/presto:/opt/presto/etc
+      - ./etc/trino:/etc/trino
     networks:
       - base_net
 
@@ -107,21 +106,6 @@ services:
     image: 'ghcr.io/trinodb/testing/spark3-hudi:latest'
     profiles: ["hudi"]
     hostname: spark-hudi
-    depends_on:
-      - hive-metastore
-      - minio
-    volumes:
-      - ./config/spark-defaults.conf:/spark/conf/spark-defaults.conf:ro
-    environment:
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-    networks:
-      - base_net
-
-  spark-iceberg:
-    image: 'ghcr.io/trinodb/testing/spark3-iceberg:latest'
-    profiles: ["iceberg"]
-    hostname: spark-iceberg
     depends_on:
       - hive-metastore
       - minio
