@@ -1,10 +1,9 @@
 version: "3.9"
 
 services:
-
   # Hadoop
   namenode:
-    image: johannestang/hadoop-namenode:2.0.0-hadoop2.8.5-java8
+    image: hub.byted.org/bytehouse/johannestang/hadoop-namenode:2.0.0-hadoop2.8.5-java8
     restart: always
     volumes:
       - ${DATADIR}/namenode:/hadoop/dfs/name
@@ -12,14 +11,14 @@ services:
       - CLUSTER_NAME=bigdata1
     env_file:
       - ./config/hadoop-hive.env
-    ports:
-      - "50070:50070"
-      - "8020:8020"
+    # ports:
+    #   - "50070:50070"
+    #   - "8020:8020"
     networks:
-      - base_net
+      - byconity-net
 
   datanode:
-    image: johannestang/hadoop-datanode:2.0.0-hadoop2.8.5-java8
+    image: hub.byted.org/bytehouse/johannestang/hadoop-datanode:2.0.0-hadoop2.8.5-java8
     restart: always
     volumes:
       - ${DATADIR}/datanode:/hadoop/dfs/data
@@ -27,15 +26,17 @@ services:
       - ./config/hadoop-hive.env
     environment:
       SERVICE_PRECONDITION: "namenode:50070"
-    ports:
-      - "50075:50075"
+    # ports:
+    #   - "50075:50075"
     networks:
-      - base_net
+      - byconity-net
 
   # Hive
   hive-server:
-    image: johannestang/hive:2.3.6-postgresql-metastore-s3
+    image: hub.byted.org/bytehouse/johannestang/hive:2.3.6-postgresql-metastore-s3
     restart: always
+    volumes:
+      - ./datasets:/mnt
     env_file:
       - ./config/hadoop-hive.env
     environment:
@@ -43,14 +44,14 @@ services:
       SERVICE_PRECONDITION: "hive-metastore:9083"
       HDFS_CONF_fs_s3a_access_key: ${MINIO_ACCESS_KEY}
       HDFS_CONF_fs_s3a_secret_key: ${MINIO_SECRET_KEY}
-    ports:
-      - "10000:10000"
-      - "10002:10002"
+    # ports:
+    #   - "10000:10000"
+    #   - "10002:10002"
     networks:
-      - base_net
+      - byconity-net
 
   hive-metastore:
-    image: johannestang/hive:2.3.6-postgresql-metastore-s3
+    image: hub.byted.org/bytehouse/johannestang/hive:2.3.6-postgresql-metastore-s3
     restart: always
     env_file:
       - ./config/hadoop-hive.env
@@ -59,64 +60,18 @@ services:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 hive-metastore-postgresql:5432"
       HDFS_CONF_fs_s3a_access_key: ${MINIO_ACCESS_KEY}
       HDFS_CONF_fs_s3a_secret_key: ${MINIO_SECRET_KEY}
-    ports:
-      - "9083:9083"
+    # ports:
+    #   - "9083:9083"
     networks:
-      - base_net
+      - byconity-net
 
   hive-metastore-postgresql:
-    image: bde2020/hive-metastore-postgresql:2.3.0
+    image: hub.byted.org/bytehouse/bde2020/hive-metastore-postgresql:2.3.0
     volumes:
       - ${DATADIR}/hive-metastore:/var/lib/postgresql/data
     networks:
-      - base_net
-
-  # Presto
-  trino-coordinator:
-    image: trinodb/trino:351
-    restart: always
-    ports:
-      - "8080:8080"
-    environment:
-      S3_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      S3_SECRET_KEY: ${MINIO_SECRET_KEY}
-      S3_ENDPOINT: "http://minio:9000"
-    volumes:
-      - ./etc/trino:/etc/trino
-    networks:
-      - base_net
-
-  minio:
-    image: minio/minio
-    restart: always
-    ports:
-      - 9000:9000
-      - 9001:9001
-    environment:
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-    volumes:
-      - ${DATADIR}/minio/data:/data
-      - ${DATADIR}/minio/config:/root/.minio
-    command: server --console-address ":9001" /data
-    networks:
-      - base_net
-
-  spark-hudi:
-    image: 'ghcr.io/trinodb/testing/spark3-hudi:latest'
-    profiles: ["hudi"]
-    hostname: spark-hudi
-    depends_on:
-      - hive-metastore
-      - minio
-    volumes:
-      - ./config/spark-defaults.conf:/spark/conf/spark-defaults.conf:ro
-    environment:
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-    networks:
-      - base_net
+      - byconity-net
 
 networks:
-  base_net:
-    name: bigdatanet
+  byconity-net:
+    driver: bridge
